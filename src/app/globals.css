@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-hind), "Hind Siliguri", sans-serif;
+  --font-mono: var(--font-red-hat), "Red Hat Mono", ui-monospace, monospace;
+  --color-primary: #0f766e;
+  --color-primary-dark: #005c55;
+  --color-mint: #e7f7f4;
+  --color-canvas: #f7faf8;
+  --color-card: #ffffff;
+  --color-ink: #181c1c;
+  --color-muted: #3e4947;
+  --color-faint: #6e7977;
+  --color-line: #d5e0dd;
+  --color-amber: #d97706;
+  --color-amber-soft: #fff4e8;
+  --color-danger: #ba1a1a;
+  --color-danger-soft: #ffdad6;
+  --color-orange: #c2410c;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+dialog {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  max-width: calc(100vw - 2rem);
+}
+
+dialog::backdrop {
+  background: rgb(24 28 28 / 0.45);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  outline-color: #0f766e;
+}
+
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none;
+  }
+}

@@ -1,0 +1,190 @@
+import type { ApiClient } from "@/lib/api/client";
+import { apiFetch, postJson } from "@/lib/api/http";
+import type {
+  AppNotification,
+  AuditLog,
+  AuthResult,
+  BulkPreview,
+  CashHandover,
+  CollectTodayItem,
+  CollectorReportRow,
+  ContactAttempt,
+  Customer,
+  DailyCollectionRow,
+  DashboardSummary,
+  DuesReportRow,
+  ImportPreview,
+  LedgerEntry,
+  LedgerWriteResult,
+  Me,
+  Member,
+  MessageTemplate,
+  OtpRequestResponse,
+  OtpVerifyResponse,
+  OutboundMessage,
+  Page,
+  PartyAging,
+  PartyGroup,
+  PendingCollection,
+  PromiseDto,
+  PublicStatement,
+  ReminderRule,
+  SessionDto,
+  SetupChecklist,
+  StatementLink,
+  SubscriptionInfo,
+  TemplatePreview,
+  TenantProfile,
+  TimelineEvent,
+  TrendPoint,
+  Wallet,
+  WalletTransaction,
+} from "@/lib/api/types";
+
+const q = (params: Record<string, string | number | boolean | undefined>) => {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") search.set(key, String(value));
+  }
+  const text = search.toString();
+  return text ? `?${text}` : "";
+};
+
+async function listOrPage<T>(path: string): Promise<T[]> {
+  const data = await apiFetch<T[] | Page<T>>(path);
+  return Array.isArray(data) ? data : data.items;
+}
+
+/** Real HTTP client. Same interface as the mock; swap with NEXT_PUBLIC_API_MODE=real. */
+export const realApi: ApiClient = {
+  auth: {
+    requestOtp: (body) => postJson<OtpRequestResponse>("/auth/otp/request", body),
+    verifyOtp: (body) => postJson<OtpVerifyResponse>("/auth/otp/verify", body),
+    signup: (body) => postJson<AuthResult>("/auth/signup", body),
+    login: (body) => postJson<AuthResult>("/auth/login", body),
+    refresh: (body) => postJson<AuthResult>("/auth/refresh", body),
+    logout: () => postJson<void>("/auth/logout", {}),
+    resetPassword: (body) => postJson<void>("/auth/password/reset", body),
+    changePassword: (body) => postJson<void>("/auth/password/change", body),
+    switchTenant: (body) => postJson<AuthResult>("/auth/switch-tenant", body),
+    me: () => apiFetch<Me>("/me"),
+    updateMe: (body) => apiFetch<Me>("/me", { method: "PATCH", body: JSON.stringify(body) }),
+    sessions: () => apiFetch<SessionDto[]>("/me/sessions"),
+    revokeSession: (id) => apiFetch<void>(`/me/sessions/${id}`, { method: "DELETE" }),
+  },
+  customers: {
+    list: (query) =>
+      apiFetch<Page<Customer>>(
+        `/customers${q({ search: query?.search, status: query?.filter, groupId: query?.groupId, area: query?.area, collectorId: query?.collectorId, sort: query?.sort, direction: query?.direction, page: query?.page, pageSize: query?.pageSize, includeArchived: query?.includeArchived })}`,
+      ),
+    get: (id) => apiFetch<Customer>(`/customers/${id}`),
+    create: (body) => postJson<Customer>("/customers", body),
+    update: (id, body, rowVersion) => apiFetch<Customer>(`/customers/${id}`, { method: "PUT", body: JSON.stringify(body), headers: { "If-Match": rowVersion } }),
+    remove: (id) => apiFetch<void>(`/customers/${id}`, { method: "DELETE" }),
+    archive: (id) => postJson<Customer>(`/customers/${id}/archive`, {}),
+    checkDuplicate: (phone) => apiFetch<{ duplicate: boolean; customerId?: string }>(`/customers/check-duplicate${q({ phone })}`),
+    groups: () => apiFetch<PartyGroup[]>("/party-groups"),
+    ledger: (id) => listOrPage<LedgerEntry>(`/customers/${id}/ledger`),
+    aging: (id) => apiFetch<PartyAging>(`/customers/${id}/aging`),
+    messages: (id) => listOrPage<OutboundMessage>(`/customers/${id}/messages`),
+    timeline: (id) => listOrPage<TimelineEvent>(`/customers/${id}/timeline`),
+    setConsent: (id, channel, status) => apiFetch<Customer>(`/customers/${id}/consent`, { method: "PUT", body: JSON.stringify({ channel, status }) }),
+    assignCollector: (id, collectorId) => apiFetch<Customer>(`/customers/${id}/collector`, { method: "PUT", body: JSON.stringify({ collectorId }) }),
+    createStatementLink: (id) => postJson<StatementLink>(`/customers/${id}/statement-links`, {}),
+  },
+  suppliers: {
+    list: (query) => apiFetch<Page<Customer>>(`/suppliers${q({ search: query?.search, page: query?.page, pageSize: query?.pageSize })}`),
+    get: (id) => apiFetch<Customer>(`/suppliers/${id}`),
+    create: (body) => postJson<Customer>("/suppliers", body),
+    update: (id, body, rowVersion) => apiFetch<Customer>(`/suppliers/${id}`, { method: "PUT", body: JSON.stringify(body), headers: { "If-Match": rowVersion } }),
+    remove: (id) => apiFetch<void>(`/suppliers/${id}`, { method: "DELETE" }),
+    ledger: (id) => listOrPage<LedgerEntry>(`/suppliers/${id}/ledger`),
+  },
+  ledger: {
+    creditSale: (body, key) => postJson<LedgerWriteResult>("/ledger/credit-sales", body, key),
+    creditPurchase: (body, key) => postJson<LedgerWriteResult>("/ledger/credit-purchases", body, key),
+    adjustment: (body, key) => postJson<LedgerWriteResult>("/ledger/adjustments", body, key),
+    list: (query) => apiFetch<Page<LedgerEntry>>(`/ledger/entries${q({ from: query?.from, to: query?.to, type: query?.type, page: query?.page, pageSize: query?.pageSize })}`),
+    get: (id) => apiFetch<LedgerEntry>(`/ledger/entries/${id}`),
+    patchNote: (id, note) => apiFetch<LedgerEntry>(`/ledger/entries/${id}`, { method: "PATCH", body: JSON.stringify({ note }) }),
+    reverse: (id, body, key) => postJson<LedgerWriteResult>(`/ledger/entries/${id}/reverse`, body, key),
+    correct: (id, body, key) => postJson<LedgerWriteResult>(`/ledger/entries/${id}/correct`, body, key),
+  },
+  payments: {
+    receive: (body, key) => postJson<LedgerWriteResult>("/ledger/payments-received", body, key),
+    make: (body, key) => postJson<LedgerWriteResult>("/ledger/payments-made", body, key),
+    allocationPreview: (customerId, amount) => apiFetch<LedgerWriteResult["allocations"]>(`/ledger/allocation-preview${q({ customerId, amount })}`),
+  },
+  collections: {
+    today: () => apiFetch<CollectTodayItem[]>("/collections/today"),
+    overdue: (bucket) => apiFetch<CollectTodayItem[]>(`/collections/overdue${q({ bucket })}`),
+    promises: (status) => listOrPage<PromiseDto>(`/promises${q({ status })}`),
+    createPromise: (body) => postJson<PromiseDto>("/promises", body),
+    updatePromise: (id, body) => apiFetch<PromiseDto>(`/promises/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    cancelPromise: (id, reason) => postJson<PromiseDto>(`/promises/${id}/cancel`, { reason }),
+    logContact: (body) => postJson<ContactAttempt>("/contact-attempts", body),
+    pending: () => apiFetch<PendingCollection[]>("/pending-collections"),
+    submitPending: (body) => postJson<PendingCollection>("/pending-collections", body),
+    approvePending: (id) => postJson<LedgerWriteResult>(`/pending-collections/${id}/approve`, {}),
+    rejectPending: (id, reason) => postJson<PendingCollection>(`/pending-collections/${id}/reject`, { reason }),
+    handovers: () => apiFetch<CashHandover[]>("/cash-handovers"),
+    submitHandover: (body) => postJson<CashHandover>("/cash-handovers", body),
+    confirmHandover: (id, body) => postJson<CashHandover>(`/cash-handovers/${id}/confirm`, body),
+  },
+  reminders: {
+    templates: (filter) => listOrPage<MessageTemplate>(`/message-templates${q({ channel: filter?.channel, language: filter?.language })}`),
+    updateTemplate: (id, body) => apiFetch<MessageTemplate>(`/message-templates/${id}`, { method: "PUT", body: JSON.stringify({ body }) }),
+    preview: (body) => postJson<TemplatePreview>("/message-templates/preview", body),
+    send: (body, key) => postJson<OutboundMessage>("/messages", body, key),
+    bulkPreview: (body) => postJson<BulkPreview>("/messages/bulk/preview", body),
+    bulkSend: (body, key) => postJson<{ batchId: string; sent: number }>("/messages/bulk", body, key),
+    messages: (query) => listOrPage<OutboundMessage>(`/messages${q({ status: query?.status })}`),
+    retry: (id) => postJson<OutboundMessage>(`/messages/${id}/retry`, {}),
+    rules: () => listOrPage<ReminderRule>("/reminder-rules"),
+    updateRule: (id, patch) => apiFetch<ReminderRule>(`/reminder-rules/${id}`, { method: "PUT", body: JSON.stringify(patch) }),
+    simulate: (date) => apiFetch<{ customerId: string; name: string; ruleCode: string; templateKey: string }[]>(`/reminder-rules/simulate${q({ date })}`),
+    wallet: () => apiFetch<Wallet>("/wallet"),
+    walletTransactions: () => listOrPage<WalletTransaction>("/wallet/transactions"),
+    setThreshold: (amount) => apiFetch<Wallet>("/wallet/threshold", { method: "PUT", body: JSON.stringify({ amount }) }),
+  },
+  reports: {
+    summary: () => apiFetch<DashboardSummary>("/dashboard/summary"),
+    aging: () => apiFetch<PartyAging>("/dashboard/aging"),
+    trends: () => apiFetch<TrendPoint[]>("/dashboard/trends"),
+    dues: (query) => listOrPage<DuesReportRow>(`/reports/dues-by-customer${q({ from: query?.from, to: query?.to, collectorId: query?.collectorId })}`),
+    collections: (query) => listOrPage<DailyCollectionRow>(`/reports/collections${q({ from: query?.from, to: query?.to })}`),
+    collectors: (query) => listOrPage<CollectorReportRow>(`/reports/collections${q({ groupBy: "collector", from: query?.from, to: query?.to })}`),
+    exportCsv: (report) => apiFetch<string>(`/reports/${report}/export${q({ format: "csv" })}`),
+  },
+  settings: {
+    tenant: () => apiFetch<TenantProfile>("/tenant"),
+    updateTenant: (body) => apiFetch<TenantProfile>("/tenant", { method: "PUT", body: JSON.stringify(body) }),
+    updateSettings: (body) => apiFetch<TenantProfile>("/tenant/settings", { method: "PUT", body: JSON.stringify(body) }),
+    periodLock: (date) => postJson<TenantProfile>("/tenant/period-lock", { date }),
+    checklist: () => apiFetch<SetupChecklist>("/tenant/setup-checklist"),
+    subscription: () => apiFetch<SubscriptionInfo>("/subscription"),
+    recordManualPayment: () => postJson<SubscriptionInfo>("/subscription/manual-payment", {}),
+    resetDemo: () => Promise.reject(new Error("RESET_DEMO_MOCK_ONLY")),
+    importPreview: (csv) => postJson<ImportPreview>("/imports", { csv }),
+    importCommit: (id) => postJson<{ created: number }>(`/imports/${id}/commit`, {}),
+    importErrorReport: (id) => apiFetch<string>(`/imports/${id}/errors`),
+  },
+  staff: {
+    list: () => listOrPage<Member>("/members"),
+    invite: (body) => postJson<Member>("/members/invitations", body),
+    update: (id, body) => apiFetch<Member>(`/members/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    remove: (id) => apiFetch<void>(`/members/${id}`, { method: "DELETE" }),
+  },
+  statements: {
+    publicGet: (token) => apiFetch<PublicStatement>(`/public/statements/${token}`),
+    optOut: (token) => postJson<void>(`/public/statements/${token}/opt-out`, {}),
+  },
+  notifications: {
+    list: () => listOrPage<AppNotification>("/notifications"),
+    markRead: (id) => postJson<void>(`/notifications/${id}/read`, {}),
+    markAllRead: () => postJson<void>("/notifications/read-all", {}),
+  },
+  audit: {
+    list: () => listOrPage<AuditLog>("/audit-logs"),
+  },
+};
