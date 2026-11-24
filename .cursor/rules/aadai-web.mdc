@@ -1,0 +1,13 @@
+---
+description: Aadai web client conventions
+globs: src/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+Screens and components talk to the service layer through `getApi()`. Do not call `fetch` for customers, ledger, payments, reminders, reports, or settings.
+
+Keep user-visible strings in `messages/bn.json` and `messages/en.json`.
+
+Money crossing the service boundary is a decimal string. The mock stores integer paisa.
+
+In the same PR, tick every `docs/checklist.md` item whose acceptance criteria this change fully meets. Web UI done on the mock is ticked with `*(mock data, API wiring pending)*`. Do not tick an item that still needs mobile, Lighthouse, or the real API to meet its acceptance criteria.
