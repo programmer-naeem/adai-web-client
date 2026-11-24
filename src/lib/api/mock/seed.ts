@@ -21,6 +21,7 @@ export const IDS = {
   manager: "usr_manager",
   collector: "usr_collector",
   collector2: "usr_collector_2",
+  superadmin: "usr_superadmin",
   tenant: "ten_bismillah",
   tenant2: "ten_rahim",
   groupMirpur: "grp_mirpur",
@@ -45,6 +46,11 @@ export const IDS = {
   ikbal: "cus_ikbal",
   rina: "cus_rina",
   noor: "sup_noor",
+  planStarter: "plan_starter",
+  planBusiness: "plan_business",
+  planPremium: "plan_premium",
+  rateSms: "rate_sms",
+  rateWhatsapp: "rate_whatsapp",
 } as const;
 
 export interface DbTemplate {
@@ -142,6 +148,8 @@ export interface DbNotification {
   bodyBn: string;
   bodyEn: string;
   href: string;
+  entityType?: string;
+  entityId?: string;
   readAtUtc?: string;
   createdAtUtc: string;
 }
@@ -220,6 +228,41 @@ export interface DbStatementView {
   atUtc: string;
 }
 
+export interface DbPlan {
+  id: string;
+  code: string;
+  name: string;
+  nameBn: string;
+  monthlyPricePaisa: number;
+  maxCustomers: number;
+  includedCreditsPaisa: number;
+  isActive: boolean;
+}
+
+export interface DbChannelRate {
+  id: string;
+  channel: "Sms" | "WhatsApp";
+  pricePaisa: number;
+}
+
+export interface DbHoliday {
+  id: string;
+  date: string;
+  name: string;
+  nameBn: string;
+}
+
+export interface DbInvoice {
+  id: string;
+  tenantId: string;
+  number: string;
+  amountPaisa: number;
+  status: "Open" | "Paid";
+  issuedOn: string;
+  paidOn?: string;
+  note?: string;
+}
+
 export interface AppDatabase extends Database {
   templates: DbTemplate[];
   rules: DbRule[];
@@ -236,6 +279,10 @@ export interface AppDatabase extends Database {
   tickets: DbTicket[];
   imports: DbImport[];
   statementViews: DbStatementView[];
+  plans: DbPlan[];
+  channelRates: DbChannelRate[];
+  holidays: DbHoliday[];
+  invoices: DbInvoice[];
 }
 
 export function defaultSettings(overrides: Partial<DbTenantSettings> = {}): DbTenantSettings {
@@ -264,8 +311,8 @@ export function defaultSettings(overrides: Partial<DbTenantSettings> = {}): DbTe
 
 const DEMO_PASSWORD = "aadai123";
 
-function user(id: string, phone: string, fullName: string, language: "bn" | "en" = "bn"): DbUser {
-  return { id, phoneE164: phone, fullName, password: DEMO_PASSWORD, preferredLanguage: language, status: "Active" };
+function user(id: string, phone: string, fullName: string, language: "bn" | "en" = "bn", platformRole?: DbUser["platformRole"]): DbUser {
+  return { id, phoneE164: phone, fullName, password: DEMO_PASSWORD, preferredLanguage: language, status: "Active", platformRole };
 }
 
 function member(tenantId: string, userId: string, role: Role, subtitle: string, isActive = true): DbMembership {
@@ -421,6 +468,10 @@ export function seedDatabase(): AppDatabase {
     tickets: [],
     imports: [],
     statementViews: [],
+    plans: [],
+    channelRates: [],
+    holidays: [],
+    invoices: [],
   };
 
   db.users.push(
@@ -428,7 +479,46 @@ export function seedDatabase(): AppDatabase {
     user(IDS.manager, "+8801812456789", "তানভীর আহমেদ"),
     user(IDS.collector, "+8801913567890", "মোঃ সোহেল রানা"),
     user(IDS.collector2, "+8801614678901", "মোঃ জুয়েল মিয়া"),
+    user(IDS.superadmin, "+8801611223344", "প্ল্যাটফর্ম অ্যাডমিন", "bn", "SuperAdmin"),
   );
+
+  db.plans.push(
+    { id: IDS.planStarter, code: "Starter", name: "Starter", nameBn: "স্টার্টার", monthlyPricePaisa: 79_900, maxCustomers: 500, includedCreditsPaisa: 10_000, isActive: true },
+    { id: IDS.planBusiness, code: "Business", name: "Business", nameBn: "বিজনেস", monthlyPricePaisa: 199_900, maxCustomers: 3_000, includedCreditsPaisa: 30_000, isActive: true },
+    { id: IDS.planPremium, code: "Premium", name: "Premium", nameBn: "প্রিমিয়াম", monthlyPricePaisa: 499_900, maxCustomers: 100_000, includedCreditsPaisa: 70_000, isActive: true },
+  );
+  db.channelRates.push(
+    { id: IDS.rateSms, channel: "Sms", pricePaisa: 50 },
+    { id: IDS.rateWhatsapp, channel: "WhatsApp", pricePaisa: 80 },
+  );
+  const holidayRows: [string, string, string][] = [
+    ["2026-02-04", "Shab-e-Barat", "শব-ই-বরাত"],
+    ["2026-02-21", "Shaheed Day and International Mother Language Day", "শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবস"],
+    ["2026-03-17", "Shab-e-Qadr", "শব-ই-কদর"],
+    ["2026-03-19", "Eid-ul-Fitr", "ঈদুল ফিতর"],
+    ["2026-03-20", "Eid-ul-Fitr", "ঈদুল ফিতর"],
+    ["2026-03-21", "Eid-ul-Fitr", "ঈদুল ফিতর"],
+    ["2026-03-22", "Eid-ul-Fitr", "ঈদুল ফিতর"],
+    ["2026-03-23", "Eid-ul-Fitr", "ঈদুল ফিতর"],
+    ["2026-03-26", "Independence and National Day", "স্বাধীনতা ও জাতীয় দিবস"],
+    ["2026-04-14", "Bengali New Year", "পহেলা বৈশাখ"],
+    ["2026-05-01", "May Day", "মে দিবস"],
+    ["2026-05-26", "Eid-ul-Azha", "ঈদুল আজহা"],
+    ["2026-05-27", "Eid-ul-Azha", "ঈদুল আজহা"],
+    ["2026-05-28", "Eid-ul-Azha", "ঈদুল আজহা"],
+    ["2026-05-29", "Eid-ul-Azha", "ঈদুল আজহা"],
+    ["2026-05-30", "Eid-ul-Azha", "ঈদুল আজহা"],
+    ["2026-05-31", "Eid-ul-Azha", "ঈদুল আজহা"],
+    ["2026-06-26", "Ashura", "আশুরা"],
+    ["2026-08-05", "July Mass Uprising Day", "জুলাই গণ-অভ্যুত্থান দিবস"],
+    ["2026-08-26", "Eid-e-Milad-un-Nabi", "ঈদে মিলাদুন্নবী"],
+    ["2026-09-04", "Janmashtami", "জন্মাষ্টমী"],
+    ["2026-10-20", "Durga Puja", "দুর্গাপূজা"],
+    ["2026-10-21", "Durga Puja", "দুর্গাপূজা"],
+    ["2026-12-16", "Victory Day", "বিজয় দিবস"],
+    ["2026-12-25", "Christmas Day", "বড়দিন"],
+  ];
+  db.holidays.push(...holidayRows.map(([date, name, nameBn]) => ({ id: uid(), date, name, nameBn })));
 
   const tenant: DbTenant = {
     id: IDS.tenant,
@@ -440,8 +530,9 @@ export function seedDatabase(): AppDatabase {
     logoText: "বি",
     status: "Trial",
     trialEndsOn: "2026-11-27",
+    planId: IDS.planBusiness,
     planName: "Business",
-    maxCustomers: 500,
+    maxCustomers: 3_000,
     settings: defaultSettings(),
   };
   const tenant2: DbTenant = {
@@ -453,8 +544,9 @@ export function seedDatabase(): AppDatabase {
     address: "মিরপুর ১, ঢাকা",
     logoText: "র",
     status: "Active",
+    planId: IDS.planStarter,
     planName: "Starter",
-    maxCustomers: 200,
+    maxCustomers: 500,
     settings: defaultSettings({ defaultCreditDays: 15 }),
   };
   db.tenants.push(tenant, tenant2);
@@ -465,6 +557,7 @@ export function seedDatabase(): AppDatabase {
     member(IDS.tenant, IDS.collector, "Collector", "মাঠ পর্যায়ের আদায়"),
     member(IDS.tenant, IDS.collector2, "Collector", "মাঠ পর্যায়ের আদায়", false),
     member(IDS.tenant2, IDS.owner, "Owner", "প্রধান অ্যাকাউন্ট"),
+    member(IDS.tenant, IDS.superadmin, "Viewer", "প্ল্যাটফর্ম"),
   );
 
   const groups: DbGroup[] = [
@@ -484,7 +577,7 @@ export function seedDatabase(): AppDatabase {
     party({ id: IDS.mita, tenantId: IDS.tenant, partyType: "Customer", code: "C-007", name: "মিতা ফ্যাশন হাউজ", nameEn: "Mita Fashion House", phoneE164: "+8801312333444", area: "ধানমন্ডি", groupId: IDS.groupDhanmondi, creditDays: 7, assignedCollectorId: IDS.collector2 }),
     party({ id: IDS.jahir, tenantId: IDS.tenant, partyType: "Customer", code: "C-008", name: "জহির ট্রেডার্স", nameEn: "Jahir Traders", phoneE164: "+8801414555666", area: "উত্তরা", groupId: IDS.groupWholesale, creditDays: 30, assignedCollectorId: IDS.collector2 }),
     party({ id: IDS.kamal, tenantId: IDS.tenant, partyType: "Customer", code: "C-009", name: "কামাল গার্মেন্টস", nameEn: "Kamal Garments", phoneE164: "+8801716777888", area: "যাত্রাবাড়ী", creditDays: 7, assignedCollectorId: IDS.collector }),
-    party({ id: IDS.farhana, tenantId: IDS.tenant, partyType: "Customer", code: "C-010", name: "ফারহানা কসমেটিক্স", nameEn: "Farhana Cosmetics", phoneE164: "+8801819888999", area: "মোহাম্মদপুর", creditDays: 10, assignedCollectorId: IDS.collector }),
+    party({ id: IDS.farhana, tenantId: IDS.tenant, partyType: "Customer", code: "C-010", name: "ফারহানা কসমেটিক্স", nameEn: "Farhana Cosmetics", phoneE164: "+8801819888999", area: "মোহাম্মদপুর", creditDays: 10, assignedCollectorId: IDS.collector, preferredLanguage: "en", statementToken: "farhana-en", statementExpiresOn: "2026-12-22" }),
     party({ id: IDS.shafiq, tenantId: IDS.tenant, partyType: "Customer", code: "C-011", name: "শফিক বিল্ডিং", nameEn: "Shafiq Building", phoneE164: "+8801917666555", area: "চকবাজার", groupId: IDS.groupWholesale, creditDays: 20 }),
     party({ id: IDS.nurul, tenantId: IDS.tenant, partyType: "Customer", code: "C-012", name: "নুরুল ইসলাম", nameEn: "Nurul Islam", phoneE164: "+8801613444555", area: "বনানী", creditDays: 15 }),
     party({ id: IDS.anwar, tenantId: IDS.tenant, partyType: "Customer", code: "C-013", name: "আনোয়ার রাইস এজেন্সি", nameEn: "Anwar Rice Agency", phoneE164: "+8801718999000", area: "চকবাজার", groupId: IDS.groupWholesale, creditDays: 7 }),
@@ -645,6 +738,28 @@ export function seedDatabase(): AppDatabase {
     createdAtUtc: "2026-11-01T00:00:00.000Z",
   });
 
+  db.invoices.push(
+    {
+      id: "inv_bismillah_open",
+      tenantId: IDS.tenant,
+      number: "INV-2026-001",
+      amountPaisa: 199_900,
+      status: "Open",
+      issuedOn: "2026-11-01",
+      note: "বিজনেস প্ল্যান, নভেম্বর",
+    },
+    {
+      id: "inv_rahim_paid",
+      tenantId: IDS.tenant2,
+      number: "INV-2026-014",
+      amountPaisa: 79_900,
+      status: "Paid",
+      issuedOn: "2026-11-01",
+      paidOn: "2026-11-05",
+      note: "স্টার্টার প্ল্যান, নভেম্বর",
+    },
+  );
+
   db.notifications.push(
     {
       id: uid(),
@@ -681,6 +796,21 @@ export function seedDatabase(): AppDatabase {
       bodyEn: "Renew the plan by 27 November.",
       href: "/plan",
       createdAtUtc: "2026-11-22T00:30:00.000Z",
+      readAtUtc: "2026-11-22T05:00:00.000Z",
+    },
+    {
+      id: uid(),
+      tenantId: t,
+      userId: IDS.owner,
+      type: "party.overdue",
+      titleBn: "করিম হার্ডওয়্যারের বাকি",
+      titleEn: "Karim Hardware is overdue",
+      bodyBn: "মোট বাকি দেখে তাগাদা দিন।",
+      bodyEn: "Open the customer and send a reminder.",
+      href: `/customers/${IDS.karim}`,
+      entityType: "Customer",
+      entityId: IDS.karim,
+      createdAtUtc: "2026-11-22T03:10:00.000Z",
     },
   );
 

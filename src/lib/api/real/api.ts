@@ -1,7 +1,13 @@
 import type { ApiClient } from "@/lib/api/client";
 import { apiFetch, postJson } from "@/lib/api/http";
 import type {
+  AdminInvoice,
+  AdminPlan,
+  AdminTenantDetail,
+  AdminTenantSummary,
   AppNotification,
+  ChannelRate,
+  Holiday,
   AuditLog,
   AuthResult,
   BulkPreview,
@@ -186,5 +192,25 @@ export const realApi: ApiClient = {
   },
   audit: {
     list: () => listOrPage<AuditLog>("/audit-logs"),
+  },
+  admin: {
+    tenants: () => listOrPage<AdminTenantSummary>("/admin/tenants"),
+    tenant: (id) => apiFetch<AdminTenantDetail>(`/admin/tenants/${id}`),
+    createTenant: (body) => postJson<AdminTenantDetail>("/admin/tenants", body),
+    setStatus: (id, status) => apiFetch<AdminTenantDetail>(`/admin/tenants/${id}/status`, { method: "PUT", body: JSON.stringify({ status }) }),
+    setSubscription: (id, planId) => apiFetch<AdminTenantDetail>(`/admin/tenants/${id}/subscription`, { method: "PUT", body: JSON.stringify({ planId }) }),
+    createInvoice: (tenantId, body) => postJson<AdminInvoice>(`/admin/tenants/${tenantId}/invoices`, body),
+    invoices: () => listOrPage<AdminInvoice>("/admin/invoices"),
+    markInvoicePaid: (id) => postJson<AdminInvoice>(`/admin/invoices/${id}/mark-paid`, {}),
+    topUpWallet: (tenantId, amount) => postJson<{ balance: string }>(`/admin/tenants/${tenantId}/wallet/topup`, { amount }),
+    plans: () => listOrPage<AdminPlan>("/admin/plans"),
+    createPlan: (body) => postJson<AdminPlan>("/admin/plans", body),
+    updatePlan: (id, body) => apiFetch<AdminPlan>(`/admin/plans/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    deletePlan: (id) => apiFetch<void>(`/admin/plans/${id}`, { method: "DELETE" }),
+    channelRates: () => listOrPage<ChannelRate>("/admin/channel-rates"),
+    updateChannelRate: (id, pricePerSegment) => apiFetch<ChannelRate>(`/admin/channel-rates/${id}`, { method: "PUT", body: JSON.stringify({ pricePerSegment }) }),
+    holidays: () => listOrPage<Holiday>("/admin/holidays"),
+    createHoliday: (body) => postJson<Holiday>("/admin/holidays", body),
+    deleteHoliday: (id) => apiFetch<void>(`/admin/holidays/${id}`, { method: "DELETE" }),
   },
 };

@@ -15,6 +15,7 @@ const DEMOS = [
   { phone: "01711345678", role: "owner" },
   { phone: "01812456789", role: "manager" },
   { phone: "01913567890", role: "collector" },
+  { phone: "01611223344", role: "superadmin" },
 ] as const;
 
 export function LoginScreen() {
@@ -44,7 +45,8 @@ export function LoginScreen() {
         const result = await getApi().auth.login({ phone, password });
         await signIn(result);
       }
-      router.replace("/dashboard");
+      const session = await getApi().auth.me();
+      router.replace(session.platformRole ? "/admin/tenants" : "/dashboard");
     } catch (error) {
       const message = errors(errorCode(error) as "UNKNOWN");
       setFieldError(message);
@@ -105,7 +107,7 @@ export function SignupScreen() {
   const [ticket, setTicket] = useState("");
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
-  const [businessType, setBusinessType] = useState("খুচরা");
+  const [businessType, setBusinessType] = useState(t("retail"));
   const [address, setAddress] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -224,19 +226,20 @@ export function ForgotScreen() {
 
 function AuthFrame({ children }: { children: React.ReactNode }) {
   const locale = useLocale();
+  const common = useTranslations("common");
   const router = useRouter();
   const pathname = usePathname();
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-10">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="grid size-11 place-items-center rounded-2xl bg-primary text-lg font-bold text-white">আ</span>
-          <span className="text-2xl font-bold text-primary">আদায়</span>
+          <span className="grid size-11 place-items-center rounded-2xl bg-primary text-lg font-bold text-white">{common("brandMark")}</span>
+          <span className="text-2xl font-bold text-primary">{common("brand")}</span>
         </div>
         <div className="flex rounded-xl border border-line p-1 text-sm font-semibold">
           {(["bn", "en"] as const).map((item) => (
             <button key={item} type="button" className={cn("rounded-lg px-2 py-1", locale === item ? "bg-primary text-white" : "")} onClick={() => router.replace(pathname, { locale: item })}>
-              {item === "bn" ? "বাং" : "EN"}
+              {item === "bn" ? common("langShortBn") : common("langShortEn")}
             </button>
           ))}
         </div>

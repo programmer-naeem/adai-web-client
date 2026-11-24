@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Hind_Siliguri, Red_Hat_Mono } from "next/font/google";
+import bn from "../../messages/bn.json";
 import "./globals.css";
 
 const hind = Hind_Siliguri({
@@ -14,11 +15,12 @@ const mono = Red_Hat_Mono({
   weight: ["500", "600"],
   variable: "--font-red-hat",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
-  title: "আদায়",
-  description: "সহজ বাকি খাতা — কাস্টমারের বাকি, আদায় ও তাগাদা",
+  title: bn.meta.title,
+  description: bn.meta.description,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

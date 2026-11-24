@@ -19,6 +19,7 @@ const BUCKETS = ["b0_30", "b31_60", "b61_90", "b90"] as const;
 
 export function CollectionsScreen() {
   const t = useTranslations("collections");
+  const common = useTranslations("common");
   const buckets = useTranslations("buckets");
   const status = useTranslations("status");
   const locale = useLocale() === "en" ? "en" : "bn";
@@ -73,7 +74,7 @@ export function CollectionsScreen() {
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <a className="rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-primary" href={telHref(row.phoneE164)}>{t("log")}</a>
-                <a className="rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-primary" href={whatsAppHref(row.phoneE164)}>WhatsApp</a>
+                <a className="rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-primary" href={whatsAppHref(row.phoneE164)}>{common("whatsapp")}</a>
                 <Button variant="outline" className="min-h-10" onClick={() => setPromiseFor(row)}>{t("addPromise")}</Button>
                 <Button variant="ghost" className="min-h-10" onClick={() => setContact(row)}>{t("log")}</Button>
               </div>
@@ -106,7 +107,7 @@ export function CollectionsScreen() {
               <Money value={item.amount} />
               <div className="mt-2 flex gap-2">
                 <Button onClick={async () => { await getApi().collections.approvePending(item.id); await client.invalidateQueries(); toast(t("saved")); }}>{t("approve")}</Button>
-                <Button variant="outline" onClick={async () => { await getApi().collections.rejectPending(item.id, "ভুল জমা"); await client.invalidateQueries(); }}>{t("reject")}</Button>
+                <Button variant="outline" onClick={async () => { await getApi().collections.rejectPending(item.id, t("wrongEntry")); await client.invalidateQueries(); }}>{t("reject")}</Button>
               </div>
             </li>
           ))}
@@ -203,7 +204,7 @@ function HandoverPanel({ rows, onChange }: { rows: { id: string; collectorName: 
           <p>{t("variance")}: {row.variance ? <Money value={row.variance} /> : "—"}</p>
           {row.status === "Submitted" ? (
             <Button className="mt-2" onClick={async () => {
-              const noteText = row.variance && parseMoneyToPaisa(row.variance) !== 0 ? note || "মিলিয়ে নেওয়া হয়েছে" : undefined;
+              const noteText = row.variance && parseMoneyToPaisa(row.variance) !== 0 ? note || t("reconciled") : undefined;
               try {
                 await getApi().collections.confirmHandover(row.id, { confirmedAmount: row.declaredAmount, note: noteText });
                 onChange();

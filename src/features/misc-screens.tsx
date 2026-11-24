@@ -7,11 +7,12 @@ import { Money } from "@/components/money";
 import { Button, Field, TextArea, TextInput } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { getApi } from "@/lib/api";
-import { formatDate } from "@/lib/date";
+import { formatDateTime } from "@/lib/date";
 import { paisaToMoneyString, parseMoneyToPaisa } from "@/lib/money";
 
 export function WalletScreen() {
   const t = useTranslations("wallet");
+  const locale = useLocale() === "en" ? "en" : "bn";
   const wallet = useQuery({ queryKey: ["wallet"], queryFn: () => getApi().reminders.wallet() });
   const tx = useQuery({ queryKey: ["wallet-tx"], queryFn: () => getApi().reminders.walletTransactions() });
   const toast = useToast();
@@ -37,7 +38,8 @@ export function WalletScreen() {
       <ul className="flex flex-col gap-2">
         {(tx.data ?? []).map((item) => (
           <li key={item.id} className="rounded-2xl border border-line bg-white p-3 text-sm">
-            <div className="flex justify-between"><span>{item.note}</span><Money value={item.amount} /></div>
+            <div className="flex justify-between gap-3"><span>{item.note}</span><Money value={item.amount} /></div>
+            <p className="text-xs text-muted">{formatDateTime(item.createdAtUtc, locale)}</p>
           </li>
         ))}
       </ul>
@@ -55,7 +57,7 @@ export function AuditScreen() {
       <ul className="mt-4 flex flex-col gap-3">
         {(rows.data ?? []).map((row) => (
           <li key={row.id} className="rounded-2xl border border-line bg-white p-4">
-            <p className="text-sm text-muted">{formatDate(row.atUtc.slice(0, 10), locale)} · {row.actorName}</p>
+            <p className="text-sm text-muted">{formatDateTime(row.atUtc, locale)} · {row.actorName}</p>
             <p className="font-semibold">{row.action} · {row.entityType}</p>
             <div className="mt-2 grid gap-2 md:grid-cols-2">
               <pre className="overflow-auto rounded-xl bg-canvas p-3 text-xs">{t("before")}: {JSON.stringify(row.before ?? {}, null, 2)}</pre>
@@ -97,7 +99,7 @@ export function PlanScreen() {
 export function ImportScreen() {
   const t = useTranslations("import");
   const toast = useToast();
-  const [csv, setCsv] = useState("Name,Phone,Type,OpeningBalance\nটেস্ট কাস্টমার,01710000099,Customer,1000");
+  const [csv, setCsv] = useState(t("sample"));
   const [id, setId] = useState("");
   const [valid, setValid] = useState(0);
   const [errors, setErrors] = useState(0);
@@ -132,42 +134,3 @@ export function ImportScreen() {
   );
 }
 
-export function StatementScreen({ token }: { token: string }) {
-  const t = useTranslations("statement");
-  const toast = useToast();
-  const statement = useQuery({ queryKey: ["statement", token], queryFn: () => getApi().statements.publicGet(token) });
-  if (statement.isError) {
-    return (
-      <main className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold">{t("missing")}</h1>
-        <p className="mt-2 text-muted">{t("missingHint")}</p>
-      </main>
-    );
-  }
-  if (!statement.data) return <p className="p-8">{t("title")}</p>;
-  const data = statement.data;
-  return (
-    <main className="mx-auto flex min-h-screen max-w-lg flex-col gap-4 px-4 py-8">
-      <p className="text-sm font-semibold text-primary">{data.businessName}</p>
-      <h1 className="text-3xl font-bold">{data.customerName}</h1>
-      <p className="text-muted">{data.maskedPhone}</p>
-      <section className="rounded-2xl bg-white p-4 shadow-sm">
-        <p className="text-sm text-muted">{t("balance")}</p>
-        <p className="text-4xl"><Money value={data.balance} tone="due" /></p>
-        <p className="mt-2 text-sm">{t("overdue")}: <Money value={data.overdue} tone="overdue" /></p>
-      </section>
-      <h2 className="font-semibold">{t("recent")}</h2>
-      <ul className="flex flex-col gap-2">
-        {data.entries.map((entry, index) => (
-          <li key={index} className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm">
-            <span>{formatDate(entry.date, data.language)} · {entry.label}</span>
-            <Money value={entry.amount} tone={entry.direction === "Dr" ? "due" : "paid"} />
-          </li>
-        ))}
-      </ul>
-      <a className="inline-flex min-h-12 items-center justify-center rounded-xl bg-primary font-semibold text-white" href={`tel:${data.businessPhone}`}>{t("call")}</a>
-      <Button variant="outline" onClick={() => window.print()}>{t("pdf")}</Button>
-      <Button variant="ghost" onClick={async () => { await getApi().statements.optOut(token); toast(t("stopped")); }}>{t("stop")}</Button>
-    </main>
-  );
-}

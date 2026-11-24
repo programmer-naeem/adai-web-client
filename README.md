@@ -18,6 +18,7 @@ Demo password for every account: `aadai123`. Demo OTP: `123456`.
 | Owner (হাজী আব্দুর রহিম) | 01711345678 |
 | Manager | 01812456789 |
 | Collector | 01913567890 |
+| Super admin | 01611223344 |
 
 The owner also belongs to a second shop, রহিম ইলেকট্রনিক্স, and can switch from the sidebar.
 

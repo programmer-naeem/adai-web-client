@@ -97,13 +97,37 @@ export function formatDateShort(iso: string, locale: "bn" | "en" = "bn"): string
 }
 
 export function dhakaToday(now = new Date()): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
+  return dhakaParts(now).isoDate;
+}
+
+export interface DhakaParts {
+  isoDate: string;
+  time: string;
+}
+
+/** Calendar date and 24-hour time in Asia/Dhaka. */
+export function dhakaParts(instant: Date): DhakaParts {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: "Asia/Dhaka",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(now);
-  return parts;
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const pick = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  const hour = pick("hour") === "24" ? "00" : pick("hour");
+  return { isoDate: `${pick("year")}-${pick("month")}-${pick("day")}`, time: `${hour}:${pick("minute")}` };
+}
+
+/** Format an instant in Asia/Dhaka, with Bangla digits when locale is bn. */
+export function formatDateTime(isoUtc: string, locale: "bn" | "en" = "bn"): string {
+  const instant = new Date(isoUtc);
+  if (Number.isNaN(instant.getTime())) throw new Error("Invalid date");
+  const { isoDate, time } = dhakaParts(instant);
+  const clock = locale === "bn" ? toBnDigits(time) : time;
+  return `${formatDate(isoDate, locale)} ${clock}`;
 }
 
 /**
