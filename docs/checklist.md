@@ -283,7 +283,7 @@
 - [ ] **[JUNIOR]** GET /customers/{id}/statement.pdf?from=&to= (opening balance, entries, closing balance, Bangla font). **AC:** totals match ledger for the range.
 
 **Web**
-- [ ] **[JUNIOR]** Public page s/[token] (SSR, mobile-first, noindex, Bangla/English by customer language, business branding, PDF button, "Stop messages", "Call business"). **AC:** Lighthouse mobile performance ≥ 90; friendly 404 page in Bangla.
+- [x] **[JUNIOR]** Public page s/[token] (SSR, mobile-first, noindex, Bangla/English by customer language, business branding, PDF button, "Stop messages", "Call business"). **AC:** Lighthouse mobile performance ≥ 90; friendly 404 page in Bangla. ✅ (web PR #7, mock data)
 - [x] **[JUNIOR]** "Share statement link" button on customer detail (copy + WhatsApp share) and "Viewed on …" in timeline. **AC:** link copies; view appears after opening the link. *(mock data, API wiring pending)*
 
 ## 13. Collector App, Approvals & Cash Hand-over (S1.13, S1.14)
@@ -364,7 +364,7 @@
 - [ ] **[JUNIOR]** GET /subscription (plan, usage vs limits, invoices) and invoice PDF. **AC:** usage numbers match DB counts.
 
 **Web**
-- [ ] **[JUNIOR]** Admin area pages: tenants list/detail, plans, channel rates, holidays, invoices & mark paid, wallet top-up. **AC:** matches Stitch (or simple shadcn tables if not designed); only visible to SA/SP.
+- [x] **[JUNIOR]** Admin area pages: tenants list/detail, plans, channel rates, holidays, invoices & mark paid, wallet top-up. **AC:** matches Stitch (or simple shadcn tables if not designed); only visible to SA/SP. ✅ (web PR #7, mock data)
 - [x] **[JUNIOR]** Tenant-side "Plan & billing" page and expiry banner (7/3/1 days). **AC:** banner text in Bangla; disappears after payment. *(mock data, API wiring pending)*
 
 ## 20. Localization (Bangla / English)

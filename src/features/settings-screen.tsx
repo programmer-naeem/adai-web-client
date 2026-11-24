@@ -56,7 +56,7 @@ export function SettingsScreen() {
                 const next = await getApi().auth.updateMe({ preferredLanguage: item });
                 setUser(next);
               }
-            }}>{item === "bn" ? "বাংলা" : "English"}</Button>
+            }}>{item === "bn" ? common("bangla") : common("english")}</Button>
           ))}
         </div>
       </section>
@@ -97,7 +97,7 @@ export function SettingsScreen() {
             } catch (error) { toast(errors(errorCode(error) as "UNKNOWN"), "danger"); }
           }}>
             <TextInput placeholder={t("invite")} value={inviteName} onChange={(event) => setInviteName(event.target.value)} />
-            <TextInput placeholder="01…" value={invitePhone} onChange={(event) => setInvitePhone(event.target.value)} />
+            <TextInput placeholder={common("phonePlaceholder")} value={invitePhone} onChange={(event) => setInvitePhone(event.target.value)} />
             <select className="h-12 rounded-xl border border-line px-2" value={inviteRole} onChange={(event) => setInviteRole(event.target.value as Role)}>
               {ROLES.filter((role) => role !== "Owner" || can(user?.role, "staff.assignOwner")).map((role) => <option key={role} value={role}>{roles(role)}</option>)}
             </select>

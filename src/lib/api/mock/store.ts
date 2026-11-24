@@ -1,6 +1,6 @@
 import { seedDatabase, type AppDatabase } from "@/lib/api/mock/seed";
 
-const STORAGE_KEY = "aadai.mock.db.v1";
+const STORAGE_KEY = "aadai.mock.db.v2";
 
 let memory: AppDatabase | null = null;
 
@@ -41,7 +41,7 @@ export function resetDb(): AppDatabase {
 export async function withDb<T>(work: (db: AppDatabase) => T): Promise<T> {
   const result = work(getDb());
   persistDb();
-  if (!process.env.VITEST) {
+  if (!process.env.VITEST && typeof window !== "undefined") {
     const ms = 220 + Math.floor(Math.random() * 160);
     await new Promise((resolve) => setTimeout(resolve, ms));
   }

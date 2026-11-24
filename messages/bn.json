@@ -1,5 +1,9 @@
 {
-  "meta": { "title": "আদায়", "tagline": "সহজ বাকি খাতা" },
+  "meta": {
+    "title": "আদায়",
+    "tagline": "সহজ বাকি খাতা",
+    "description": "সহজ বাকি খাতা — কাস্টমারের বাকি, আদায় ও তাগাদা"
+  },
   "common": {
     "save": "সংরক্ষণ করুন",
     "cancel": "বাতিল",
@@ -40,7 +44,19 @@
     "payable": "দেবো",
     "settled": "পরিশোধ",
     "youWillGet": "পাবো",
-    "youWillGive": "দেবো"
+    "youWillGive": "দেবো",
+    "menu": "মেনু",
+    "notifications": "নোটিফিকেশন",
+    "markAllRead": "সব পড়া হয়েছে",
+    "unreadCount": "{count}টি অপঠিত",
+    "whatsapp": "WhatsApp",
+    "brand": "আদায়",
+    "brandMark": "আ",
+    "phonePlaceholder": "01…",
+    "business": "দোকান",
+    "address": "ঠিকানা",
+    "langShortBn": "বাং",
+    "langShortEn": "EN"
   },
   "nav": {
     "dashboard": "ড্যাশবোর্ড",
@@ -68,6 +84,8 @@
     "forgot": "পাসওয়ার্ড ভুলে গেছেন?",
     "demoTitle": "ডেমো অ্যাকাউন্ট",
     "demoPassword": "পাসওয়ার্ড: aadai123 · ওটিপি: 123456",
+    "superadmin": "সুপার অ্যাডমিন",
+    "retail": "খুচরা",
     "owner": "মালিক",
     "manager": "ম্যানেজার",
     "collector": "কালেক্টর",
@@ -230,7 +248,12 @@
     "Failed": "ব্যর্থ",
     "Blocked": "আটকানো",
     "Queued": "অপেক্ষায়",
-    "Read": "দেখা হয়েছে"
+    "Read": "দেখা হয়েছে",
+    "Trial": "ট্রায়াল",
+    "Active": "চালু",
+    "PastDue": "পেমেন্ট বাকি",
+    "Suspended": "স্থগিত",
+    "Paid": "পরিশোধিত"
   },
   "collections": {
     "title": "আদায় ও প্রতিশ্রুতি",
@@ -259,7 +282,9 @@
     "saved": "সেভ হয়েছে",
     "priorityPtp": "প্রতিশ্রুতি",
     "priorityDue": "আজকের বাকি",
-    "priorityOverdue": "মেয়াদোত্তীর্ণ"
+    "priorityOverdue": "মেয়াদোত্তীর্ণ",
+    "wrongEntry": "ভুল জমা",
+    "reconciled": "মিলিয়ে নেওয়া হয়েছে"
   },
   "reminders": {
     "title": "তাগাদা ও টেমপ্লেট ম্যানেজমেন্ট",
@@ -373,7 +398,8 @@
     "valid": "{count}টি ঠিক আছে",
     "commit": "ঠিক সারিগুলো সেভ করুন",
     "download": "ভুলের রিপোর্ট নামান",
-    "done": "{count} জন যোগ হয়েছে"
+    "done": "{count} জন যোগ হয়েছে",
+    "sample": "Name,Phone,Type,OpeningBalance\nটেস্ট কাস্টমার,01710000099,Customer,1000"
   },
   "statement": {
     "title": "হিসাব",
@@ -385,7 +411,47 @@
     "stopped": "মেসেজ বন্ধ করা হয়েছে",
     "pdf": "PDF ডাউনলোড",
     "missing": "এই লিংকটি আর কাজ করছে না",
-    "missingHint": "দোকান থেকে নতুন লিংক নিন।"
+    "missingHint": "দোকান থেকে নতুন লিংক নিন।",
+    "due": "বাকি",
+    "paid": "জমা"
+  },
+  "admin": {
+    "section": "প্ল্যাটফর্ম",
+    "tenants": "দোকান",
+    "plans": "প্ল্যান",
+    "rates": "মেসেজ রেট",
+    "holidays": "ছুটির দিন",
+    "invoices": "ইনভয়েস",
+    "tenantDetail": "দোকানের বিবরণ",
+    "createTenant": "নতুন দোকান",
+    "ownerName": "মালিকের নাম",
+    "subscription": "সাবস্ক্রিপশন",
+    "saveStatus": "স্ট্যাটাস সেভ",
+    "savePlan": "প্ল্যান বদলান",
+    "topUp": "টপ-আপ",
+    "createInvoice": "ইনভয়েস তৈরি",
+    "markPaid": "পরিশোধিত",
+    "paidOn": "পরিশোধের তারিখ",
+    "issued": "ইস্যু",
+    "owner": "মালিক",
+    "customers": "কাস্টমার",
+    "price": "মাসিক মূল্য",
+    "maxCustomers": "কাস্টমার সীমা",
+    "credits": "মেসেজ ক্রেডিট",
+    "code": "কোড",
+    "nameEn": "ইংরেজি নাম",
+    "nameBn": "বাংলা নাম",
+    "add": "যোগ করুন",
+    "activePlan": "চালু প্ল্যান",
+    "pricePerSegment": "প্রতি সেগমেন্ট",
+    "holidayName": "ইংরেজি নাম",
+    "holidayNameBn": "বাংলা নাম",
+    "forbidden": "এই পাতা শুধু প্ল্যাটফর্ম অ্যাডমিনের জন্য",
+    "saved": "সেভ হয়েছে",
+    "walletBalance": "ওয়ালেট",
+    "trialEnds": "ট্রায়াল শেষ",
+    "sms": "এসএমএস",
+    "whatsapp": "হোয়াটসঅ্যাপ"
   },
   "errors": {
     "PHONE_INVALID": "সঠিক বাংলাদেশি মোবাইল নম্বর দিন",
@@ -403,6 +469,9 @@
     "DATE_INVALID": "তারিখ ঠিক নয়",
     "CONCURRENCY_CONFLICT": "অন্য কেউ আগে বদলে ফেলেছে। আবার খুলুন",
     "PLAN_LIMIT_REACHED": "প্ল্যানের কাস্টমার সীমা শেষ",
+    "PLAN_IN_USE": "এই প্ল্যানে দোকান আছে, মুছা যাবে না",
+    "HOLIDAY_DUPLICATE": "এই ছুটি আগে থেকেই আছে",
+    "DUPLICATE": "এই কোড আগে থেকেই আছে",
     "FORBIDDEN": "আপনার এই কাজের অনুমতি নেই",
     "NOT_FOUND": "খুঁজে পাওয়া যায়নি",
     "UNAUTHORIZED": "আবার লগ ইন করুন",

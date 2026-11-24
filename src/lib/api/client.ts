@@ -1,11 +1,18 @@
 import type { Role } from "@/lib/permissions";
 import type {
+  AdminInvoice,
+  AdminPlan,
+  AdminPlanInput,
+  AdminTenantDetail,
+  AdminTenantInput,
+  AdminTenantSummary,
   AdjustmentRequest,
   AppNotification,
   AuditLog,
   AuthResult,
   BulkPreview,
   CashHandover,
+  ChannelRate,
   ChangePasswordRequest,
   CollectTodayItem,
   CollectorReportRow,
@@ -20,6 +27,8 @@ import type {
   DailyCollectionRow,
   DashboardSummary,
   DuesReportRow,
+  Holiday,
+  HolidayInput,
   ImportPreview,
   InviteMemberRequest,
   LedgerEntry,
@@ -51,6 +60,7 @@ import type {
   SignupRequest,
   StatementLink,
   SubscriptionInfo,
+  SubscriptionStatus,
   SwitchTenantRequest,
   TemplatePreview,
   TenantProfile,
@@ -202,6 +212,27 @@ export interface AuditApi {
   list(): Promise<AuditLog[]>;
 }
 
+export interface AdminApi {
+  tenants(): Promise<AdminTenantSummary[]>;
+  tenant(id: string): Promise<AdminTenantDetail>;
+  createTenant(body: AdminTenantInput): Promise<AdminTenantDetail>;
+  setStatus(id: string, status: SubscriptionStatus): Promise<AdminTenantDetail>;
+  setSubscription(id: string, planId: string): Promise<AdminTenantDetail>;
+  createInvoice(tenantId: string, body: { amount: string; note?: string }): Promise<AdminInvoice>;
+  invoices(): Promise<AdminInvoice[]>;
+  markInvoicePaid(id: string): Promise<AdminInvoice>;
+  topUpWallet(tenantId: string, amount: string): Promise<{ balance: string }>;
+  plans(): Promise<AdminPlan[]>;
+  createPlan(body: AdminPlanInput): Promise<AdminPlan>;
+  updatePlan(id: string, body: AdminPlanInput): Promise<AdminPlan>;
+  deletePlan(id: string): Promise<void>;
+  channelRates(): Promise<ChannelRate[]>;
+  updateChannelRate(id: string, pricePerSegment: string): Promise<ChannelRate>;
+  holidays(): Promise<Holiday[]>;
+  createHoliday(body: HolidayInput): Promise<Holiday>;
+  deleteHoliday(id: string): Promise<void>;
+}
+
 /** One module per resource. Screens depend on this interface, never on fetch. */
 export interface ApiClient {
   auth: AuthApi;
@@ -217,4 +248,5 @@ export interface ApiClient {
   statements: StatementsApi;
   notifications: NotificationsApi;
   audit: AuditApi;
+  admin: AdminApi;
 }

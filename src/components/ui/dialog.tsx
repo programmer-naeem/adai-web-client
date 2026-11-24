@@ -1,7 +1,10 @@
 "use client";
 
+"use client";
+
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function Dialog({
   open,
@@ -15,6 +18,7 @@ export function Dialog({
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const common = useTranslations("common");
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
@@ -30,7 +34,7 @@ export function Dialog({
     >
       <div className="flex items-center justify-between border-b border-line px-5 py-4">
         <h2 className="text-lg font-semibold">{title}</h2>
-        <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-mint" aria-label="close">
+        <button type="button" onClick={onClose} className="rounded-full p-2 hover:bg-mint" aria-label={common("close")}>
           <X className="size-5" />
         </button>
       </div>

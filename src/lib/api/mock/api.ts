@@ -38,6 +38,26 @@ import {
 import type { DbParty } from "@/lib/api/mock/engine";
 import type { AppDatabase, DbTemplate } from "@/lib/api/mock/seed";
 import { DEMO_PASSWORD_VALUE } from "@/lib/api/mock/seed";
+import {
+  createHolidayRecord,
+  createInvoiceRecord,
+  createPlanRecord,
+  createTenantRecord,
+  deleteHolidayRecord,
+  deletePlanRecord,
+  listChannelRates,
+  listHolidays,
+  listInvoices,
+  listPlans,
+  listTenantSummaries,
+  mapTenantDetail,
+  markInvoicePaid,
+  setTenantStatus,
+  setTenantSubscription,
+  topUpWallet,
+  updateChannelRateRecord,
+  updatePlanRecord,
+} from "@/lib/api/mock/admin";
 import { resetDb, withDb } from "@/lib/api/mock/store";
 import { getAccessToken, issueRefreshToken, issueToken, readToken, setAccessToken } from "@/lib/api/token";
 import type { CustomerQuery, LedgerWriteResult } from "@/lib/api/types";
@@ -57,6 +77,21 @@ function actorOf(db: AppDatabase): EngineActor {
   );
   if (!membership) throw new ApiError(403, "FORBIDDEN");
   return { userId: payload.sub, role: membership.role, tenantId: payload.tid, today: businessToday() };
+}
+
+function platformActor(db: AppDatabase) {
+  const token = getAccessToken();
+  if (!token) throw new ApiError(401, "UNAUTHORIZED");
+  let payload: ReturnType<typeof readToken>;
+  try {
+    payload = readToken(token);
+  } catch {
+    throw new ApiError(401, "UNAUTHORIZED");
+  }
+  if (payload.exp * 1000 < Date.now()) throw new ApiError(401, "UNAUTHORIZED");
+  const user = db.users.find((item) => item.id === payload.sub);
+  if (!user?.platformRole) throw new ApiError(403, "FORBIDDEN");
+  return user;
 }
 
 function requirePerm(actor: EngineActor, permission: Permission): void {
@@ -351,8 +386,9 @@ export const mockApi: ApiClient = {
           logoText: (body.businessNameBn || body.businessName).trim().slice(0, 1),
           status: "Trial",
           trialEndsOn: addDays(businessToday(), 14),
+          planId: db.plans.find((plan) => plan.code === "Business")?.id,
           planName: "Business",
-          maxCustomers: 500,
+          maxCustomers: db.plans.find((plan) => plan.code === "Business")?.maxCustomers ?? 500,
           settings: tenantOf(db, db.tenants[0]?.id ?? tenantId).settings
             ? { ...db.tenants[0]!.settings, defaultCreditDays: body.defaultCreditDays ?? 7 }
             : db.tenants[0]!.settings,
@@ -1650,7 +1686,9 @@ export const mockApi: ApiClient = {
         return {
           businessName: party.preferredLanguage === "bn" ? tenant.nameBn : tenant.name,
           businessPhone: tenant.phoneE164,
-          customerName: party.name,
+          logoText: tenant.logoText,
+          address: tenant.address,
+          customerName: party.preferredLanguage === "en" && party.nameEn ? party.nameEn : party.name,
           maskedPhone: `${phone.slice(0, 7)}•••${phone.slice(-3)}`,
           balance: money(party.currentBalancePaisa),
           overdue: money(overduePaisa(db, party.id, businessToday())),
@@ -1687,6 +1725,8 @@ export const mockApi: ApiClient = {
             title: language === "bn" ? item.titleBn : item.titleEn,
             body: language === "bn" ? item.bodyBn : item.bodyEn,
             href: item.href,
+            entityType: item.entityType,
+            entityId: item.entityId,
             readAtUtc: item.readAtUtc,
             createdAtUtc: item.createdAtUtc,
           }));
@@ -1716,6 +1756,26 @@ export const mockApi: ApiClient = {
         return db.audit.filter((item) => item.tenantId === actor.tenantId).map((item) => mapAudit(db, item));
       });
     },
+  },
+  admin: {
+    tenants: () => withDb((db) => { platformActor(db); return listTenantSummaries(db); }),
+    tenant: (id) => withDb((db) => { platformActor(db); return mapTenantDetail(db, id); }),
+    createTenant: (body) => withDb((db) => { platformActor(db); return createTenantRecord(db, body); }),
+    setStatus: (id, status) => withDb((db) => { platformActor(db); return setTenantStatus(db, id, status); }),
+    setSubscription: (id, planId) => withDb((db) => { platformActor(db); return setTenantSubscription(db, id, planId); }),
+    createInvoice: (tenantId, body) => withDb((db) => { platformActor(db); return createInvoiceRecord(db, tenantId, body); }),
+    invoices: () => withDb((db) => { platformActor(db); return listInvoices(db); }),
+    markInvoicePaid: (id) => withDb((db) => { platformActor(db); return markInvoicePaid(db, id); }),
+    topUpWallet: (tenantId, amount) => withDb((db) => { platformActor(db); return topUpWallet(db, tenantId, amount); }),
+    plans: () => withDb((db) => { platformActor(db); return listPlans(db); }),
+    createPlan: (body) => withDb((db) => { platformActor(db); return createPlanRecord(db, body); }),
+    updatePlan: (id, body) => withDb((db) => { platformActor(db); return updatePlanRecord(db, id, body); }),
+    deletePlan: (id) => withDb((db) => { platformActor(db); deletePlanRecord(db, id); }),
+    channelRates: () => withDb((db) => { platformActor(db); return listChannelRates(db); }),
+    updateChannelRate: (id, price) => withDb((db) => { platformActor(db); return updateChannelRateRecord(db, id, price); }),
+    holidays: () => withDb((db) => { platformActor(db); return listHolidays(db); }),
+    createHoliday: (body) => withDb((db) => { platformActor(db); return createHolidayRecord(db, body); }),
+    deleteHoliday: (id) => withDb((db) => { platformActor(db); deleteHolidayRecord(db, id); }),
   },
 };
 

@@ -232,6 +232,7 @@ export function meFrom(db: AppDatabase, userId: string, tenantId: string) {
     currentTenantId: current.tenantId,
     role: current.role,
     permissions: permissionsFor(current.role),
+    platformRole: user.platformRole ?? null,
   };
 }
 

@@ -50,6 +50,7 @@ export interface DbUser {
   password: string;
   preferredLanguage: "bn" | "en";
   status: "Active";
+  platformRole?: "SuperAdmin" | "Support";
 }
 
 export interface DbMembership {
@@ -72,6 +73,7 @@ export interface DbTenant {
   logoText: string;
   status: "Trial" | "Active" | "PastDue" | "Suspended" | "Cancelled";
   trialEndsOn?: string;
+  planId?: string;
   planName: string;
   maxCustomers: number;
   settings: DbTenantSettings;

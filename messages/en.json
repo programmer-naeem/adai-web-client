@@ -1,5 +1,9 @@
 {
-  "meta": { "title": "Aadai", "tagline": "Simple due ledger" },
+  "meta": {
+    "title": "Aadai",
+    "tagline": "Simple due ledger",
+    "description": "A simple due ledger for customer balances, collections, and reminders"
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -40,7 +44,19 @@
     "payable": "We owe",
     "settled": "Settled",
     "youWillGet": "You'll get",
-    "youWillGive": "You'll give"
+    "youWillGive": "You'll give",
+    "menu": "Menu",
+    "notifications": "Notifications",
+    "markAllRead": "Mark all read",
+    "unreadCount": "{count} unread",
+    "whatsapp": "WhatsApp",
+    "brand": "আদায়",
+    "brandMark": "আ",
+    "phonePlaceholder": "01…",
+    "business": "Business",
+    "address": "Address",
+    "langShortBn": "বাং",
+    "langShortEn": "EN"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -68,6 +84,8 @@
     "forgot": "Forgot password?",
     "demoTitle": "Demo accounts",
     "demoPassword": "Password: aadai123 · OTP: 123456",
+    "superadmin": "Super admin",
+    "retail": "Retail",
     "owner": "Owner",
     "manager": "Manager",
     "collector": "Collector",
@@ -230,7 +248,12 @@
     "Failed": "Failed",
     "Blocked": "Blocked",
     "Queued": "Queued",
-    "Read": "Read"
+    "Read": "Read",
+    "Trial": "Trial",
+    "Active": "Active",
+    "PastDue": "Past due",
+    "Suspended": "Suspended",
+    "Paid": "Paid"
   },
   "collections": {
     "title": "Collections and promises",
@@ -259,7 +282,9 @@
     "saved": "Saved",
     "priorityPtp": "Promise",
     "priorityDue": "Due today",
-    "priorityOverdue": "Overdue"
+    "priorityOverdue": "Overdue",
+    "wrongEntry": "Wrong collection",
+    "reconciled": "Counted and matched"
   },
   "reminders": {
     "title": "Reminders and templates",
@@ -373,7 +398,8 @@
     "valid": "{count} rows are fine",
     "commit": "Save the valid rows",
     "download": "Download the error report",
-    "done": "{count} people added"
+    "done": "{count} people added",
+    "sample": "Name,Phone,Type,OpeningBalance\nTest customer,01710000099,Customer,1000"
   },
   "statement": {
     "title": "Statement",
@@ -385,7 +411,47 @@
     "stopped": "Messages stopped",
     "pdf": "Download PDF",
     "missing": "This link no longer works",
-    "missingHint": "Ask the shop for a new link."
+    "missingHint": "Ask the shop for a new link.",
+    "due": "Due",
+    "paid": "Paid"
+  },
+  "admin": {
+    "section": "Platform",
+    "tenants": "Shops",
+    "plans": "Plans",
+    "rates": "Message rates",
+    "holidays": "Holidays",
+    "invoices": "Invoices",
+    "tenantDetail": "Shop details",
+    "createTenant": "New shop",
+    "ownerName": "Owner name",
+    "subscription": "Subscription",
+    "saveStatus": "Save status",
+    "savePlan": "Change plan",
+    "topUp": "Top up",
+    "createInvoice": "Create invoice",
+    "markPaid": "Mark paid",
+    "paidOn": "Paid on",
+    "issued": "Issued",
+    "owner": "Owner",
+    "customers": "Customers",
+    "price": "Monthly price",
+    "maxCustomers": "Customer limit",
+    "credits": "Message credit",
+    "code": "Code",
+    "nameEn": "English name",
+    "nameBn": "Bangla name",
+    "add": "Add",
+    "activePlan": "Active plan",
+    "pricePerSegment": "Per segment",
+    "holidayName": "English name",
+    "holidayNameBn": "Bangla name",
+    "forbidden": "This page is only for platform admins",
+    "saved": "Saved",
+    "walletBalance": "Wallet",
+    "trialEnds": "Trial ends",
+    "sms": "SMS",
+    "whatsapp": "WhatsApp"
   },
   "errors": {
     "PHONE_INVALID": "Enter a valid Bangladeshi mobile number",
@@ -403,6 +469,9 @@
     "DATE_INVALID": "That date is not valid",
     "CONCURRENCY_CONFLICT": "Someone else changed this. Open it again.",
     "PLAN_LIMIT_REACHED": "The plan's customer limit is reached",
+    "PLAN_IN_USE": "A shop is still on this plan",
+    "HOLIDAY_DUPLICATE": "This holiday is already on the calendar",
+    "DUPLICATE": "This code is already used",
     "FORBIDDEN": "You are not allowed to do this",
     "NOT_FOUND": "Not found",
     "UNAUTHORIZED": "Please log in again",

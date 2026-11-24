@@ -33,6 +33,8 @@ export type MessageStatus =
   | "Cancelled";
 export type ConsentStatus = "OptedIn" | "OptedOut" | "Unknown";
 export type SubscriptionStatus = "Trial" | "Active" | "PastDue" | "Suspended" | "Cancelled";
+export type PlatformRole = "SuperAdmin" | "Support";
+export type InvoiceStatus = "Open" | "Paid";
 
 export interface Page<T> {
   items: T[];
@@ -67,6 +69,7 @@ export interface Me {
   currentTenantId: string;
   role: Role;
   permissions: Permission[];
+  platformRole: PlatformRole | null;
 }
 
 export interface AuthResult extends AuthTokens {
@@ -586,6 +589,8 @@ export interface AppNotification {
   title: string;
   body: string;
   href: string;
+  entityType?: string;
+  entityId?: string;
   readAtUtc?: string;
   createdAtUtc: string;
 }
@@ -593,6 +598,8 @@ export interface AppNotification {
 export interface PublicStatement {
   businessName: string;
   businessPhone: string;
+  logoText: string;
+  address: string;
   customerName: string;
   maskedPhone: string;
   balance: MoneyString;
@@ -670,4 +677,86 @@ export interface TimelineEvent {
   kind: "entry" | "message" | "promise" | "contact" | "statement";
   title: string;
   detail?: string;
+}
+
+export interface AdminTenantSummary {
+  id: string;
+  name: string;
+  nameBn: string;
+  phoneE164: string;
+  status: SubscriptionStatus;
+  planId: string;
+  planName: string;
+  ownerName: string;
+  customerCount: number;
+  walletBalance: MoneyString;
+  trialEndsOn?: string;
+}
+
+export interface AdminInvoice {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  number: string;
+  amount: MoneyString;
+  status: InvoiceStatus;
+  issuedOn: string;
+  paidOn?: string;
+  note?: string;
+}
+
+export interface AdminTenantDetail extends AdminTenantSummary {
+  address: string;
+  email?: string;
+  maxCustomers: number;
+  invoices: AdminInvoice[];
+}
+
+export interface AdminPlan {
+  id: string;
+  code: string;
+  name: string;
+  nameBn: string;
+  monthlyPrice: MoneyString;
+  maxCustomers: number;
+  includedCredits: MoneyString;
+  isActive: boolean;
+}
+
+export interface AdminPlanInput {
+  code: string;
+  name: string;
+  nameBn: string;
+  monthlyPrice: string;
+  maxCustomers: number;
+  includedCredits: string;
+  isActive: boolean;
+}
+
+export interface AdminTenantInput {
+  name: string;
+  nameBn: string;
+  phone: string;
+  ownerName: string;
+  planId: string;
+  address?: string;
+}
+
+export interface ChannelRate {
+  id: string;
+  channel: "Sms" | "WhatsApp";
+  pricePerSegment: MoneyString;
+}
+
+export interface Holiday {
+  id: string;
+  date: string;
+  name: string;
+  nameBn: string;
+}
+
+export interface HolidayInput {
+  date: string;
+  name: string;
+  nameBn: string;
 }
