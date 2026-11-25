@@ -209,7 +209,7 @@
 
 **Web**
 - [x] **[JUNIOR]** "বাকি দিন" (Give credit) and "জমা নিন" (Receive payment) dialogs from Stitch: big amount input, method picker, due date auto-filled, allocation preview, credit-limit warning. **Depends on:** LEAD endpoints. **AC:** Playwright test — create ৳5,000 credit, receive ৳3,000, balance ৳2,000. *(mock data, API wiring pending)*
-- [ ] **[JUNIOR]** Ledger tab with running balance, reversed entries struck through with "Corrected by" link, entry detail drawer. **AC:** matches Stitch.
+- [x] **[JUNIOR]** Ledger tab with running balance, reversed entries struck through with "Corrected by" link, entry detail drawer. **AC:** matches Stitch. *(mock data, API wiring pending)*
 - [x] **[JUNIOR]** Reverse/Correct dialog with mandatory reason. **AC:** reason required (form blocks empty); success refreshes balance. *(mock data, API wiring pending)*
 
 **Mobile**

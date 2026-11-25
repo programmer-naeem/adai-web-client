@@ -278,11 +278,20 @@ export interface LedgerEntry {
   dueDate?: string;
   isReversed: boolean;
   reversalOfEntryId?: string;
+  reversalOfDocumentNo?: string;
   reversedByEntryId?: string;
+  reversedByDocumentNo?: string;
   reversalReason?: string;
   correctionOfEntryId?: string;
   createdAtUtc: string;
   createdByName: string;
+}
+
+export interface LedgerQuery {
+  page?: number;
+  pageSize?: number;
+  from?: string;
+  to?: string;
 }
 
 export interface AllocationResult {

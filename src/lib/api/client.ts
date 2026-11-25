@@ -32,6 +32,7 @@ import type {
   ImportPreview,
   InviteMemberRequest,
   LedgerEntry,
+  LedgerQuery,
   LedgerWriteResult,
   LoginRequest,
   Me,
@@ -97,7 +98,7 @@ export interface CustomersApi {
   archive(id: string): Promise<Customer>;
   checkDuplicate(phone: string): Promise<{ duplicate: boolean; customerId?: string }>;
   groups(): Promise<PartyGroup[]>;
-  ledger(id: string): Promise<LedgerEntry[]>;
+  ledger(id: string, query?: LedgerQuery): Promise<Page<LedgerEntry>>;
   aging(id: string): Promise<PartyAging>;
   messages(id: string): Promise<OutboundMessage[]>;
   timeline(id: string): Promise<import("@/lib/api/types").TimelineEvent[]>;
