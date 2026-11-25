@@ -90,7 +90,10 @@ export const realApi: ApiClient = {
     archive: (id) => postJson<Customer>(`/customers/${id}/archive`, {}),
     checkDuplicate: (phone) => apiFetch<{ duplicate: boolean; customerId?: string }>(`/customers/check-duplicate${q({ phone })}`),
     groups: () => apiFetch<PartyGroup[]>("/party-groups"),
-    ledger: (id) => listOrPage<LedgerEntry>(`/customers/${id}/ledger`),
+    ledger: (id, query) =>
+      apiFetch<Page<LedgerEntry>>(
+        `/customers/${id}/ledger${q({ page: query?.page, pageSize: query?.pageSize, from: query?.from, to: query?.to })}`,
+      ),
     aging: (id) => apiFetch<PartyAging>(`/customers/${id}/aging`),
     messages: (id) => listOrPage<OutboundMessage>(`/customers/${id}/messages`),
     timeline: (id) => listOrPage<TimelineEvent>(`/customers/${id}/timeline`),

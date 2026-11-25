@@ -4,6 +4,7 @@ import {
   emptyDatabase,
   evaluatePromises,
   postEntry,
+  reverseEntry,
   uid,
   type Database,
   type DbGroup,
@@ -590,9 +591,9 @@ export function seedDatabase(): AppDatabase {
   ];
   db.parties.push(...customers);
 
-  const actor = (tenantId: string): EngineActor => ({
-    userId: IDS.owner,
-    role: "Owner",
+  const actor = (tenantId: string, userId: string = IDS.owner, role: EngineActor["role"] = "Owner"): EngineActor => ({
+    userId,
+    role,
     tenantId,
     today: DEMO_TODAY,
     skipPolicy: true,
@@ -608,14 +609,50 @@ export function seedDatabase(): AppDatabase {
     postEntry(db, actor(tenantId), { partyId, entryType: "PaymentMade", amount, entryDate, method: "Cash", note: "পরিশোধ" });
 
   const t = IDS.tenant;
+  const received = (
+    userId: string,
+    role: EngineActor["role"],
+    partyId: string,
+    amount: string,
+    entryDate: string,
+    method: "Cash" | "Bkash" | "Nagad" | "Rocket",
+    note: string,
+    referenceNo?: string,
+  ) =>
+    postEntry(db, actor(t, userId, role), {
+      partyId,
+      entryType: "PaymentReceived",
+      amount,
+      entryDate,
+      method,
+      note,
+      referenceNo,
+    });
+  const discount = (partyId: string, amount: string, entryDate: string, note: string) =>
+    postEntry(db, actor(t, IDS.manager, "Manager"), { partyId, entryType: "Discount", amount, entryDate, note });
+
+  sale(t, IDS.karim, "25000.00", "2026-09-02", "2026-09-09", "সিমেন্ট ৫০ বস্তা, চালান ১৪২");
+  received(IDS.collector, "Collector", IDS.karim, "15000.00", "2026-09-08", "Cash", "নগদ — দোকানে এসে দিয়েছে");
+  received(IDS.manager, "Manager", IDS.karim, "10000.00", "2026-09-12", "Bkash", "bKash জমা, 01711-234567", "8H21K9P3");
+  sale(t, IDS.karim, "6000.00", "2026-09-20", "2026-09-27", "ফিটিংস ও সকেট");
+  discount(IDS.karim, "500.00", "2026-09-28", "পাকা কাস্টমার ছাড়");
+  received(IDS.owner, "Owner", IDS.karim, "5500.00", "2026-10-02", "Nagad", "নগদ অ্যাপ থেকে জমা", "NG441290");
   sale(t, IDS.karim, "15000.00", "2026-11-02", "2026-11-15", "পাইপ ও ফিটিংস (বাকি)");
   pay(t, IDS.karim, "4000.00", "2026-11-08", "নগদ টাকা আদায়");
   sale(t, IDS.karim, "8500.00", "2026-11-15", "2026-11-15", "রড ও সিমেন্ট (বাকি)");
   pay(t, IDS.karim, "5000.00", "2026-11-20", "নগদ টাকা আদায়");
+  const karimMistake = sale(t, IDS.karim, "3200.00", "2026-11-21", "2026-11-28", "ভুল এন্ট্রি — রফিক স্যানিটারির মাল");
+  reverseEntry(db, actor(t, IDS.manager, "Manager"), karimMistake.entry.id, "ভুল কাস্টমারে লেখা হয়েছিল");
 
+  sale(t, IDS.nasrin, "7500.00", "2026-10-06", "2026-10-13", "জামদানি শাড়ি, লট ৩");
+  received(IDS.collector, "Collector", IDS.nasrin, "5000.00", "2026-10-14", "Bkash", "bKash জমা", "BK44N218");
+  discount(IDS.nasrin, "500.00", "2026-10-22", "উৎসব ছাড়");
+  pay(t, IDS.nasrin, "2000.00", "2026-10-28", "দোকানে নগদ");
   sale(t, IDS.nasrin, "12000.00", "2026-11-05", "2026-11-19", "শাড়ি লট (বাকি)");
   pay(t, IDS.nasrin, "3800.00", "2026-11-12");
 
+  sale(t, IDS.tarik, "3000.00", "2026-10-18", "2026-10-25", "সয়াবিন তেল ও সাবান");
+  received(IDS.collector, "Collector", IDS.tarik, "3000.00", "2026-10-25", "Rocket", "রকেট থেকে জমা", "RK778120");
   sale(t, IDS.tarik, "9600.00", "2026-11-10", "2026-11-22", "মুদি মাল (বাকি)");
   pay(t, IDS.tarik, "4000.00", "2026-11-22");
 
@@ -637,6 +674,8 @@ export function seedDatabase(): AppDatabase {
 
   sale(t, IDS.habib, "40000.00", "2026-09-20", "2026-10-01", "ইলেকট্রনিক্স লট");
   pay(t, IDS.habib, "8000.00", "2026-10-15");
+  const habibMistake = sale(t, IDS.habib, "1500.00", "2026-11-18", "2026-11-25", "ভুল এন্ট্রি — অন্য দোকানের কেবল");
+  reverseEntry(db, actor(t, IDS.owner, "Owner"), habibMistake.entry.id, "ভুল অঙ্ক, বাতিল করা হলো");
   pay(t, IDS.habib, "3500.00", "2026-11-22");
 
   sale(t, IDS.mita, "25000.00", "2026-09-01", "2026-09-10", "পোশাক লট");

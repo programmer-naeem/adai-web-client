@@ -1,4 +1,5 @@
 import { addDays, businessToday, diffDays, isIsoDate, lastNDays } from "@/lib/date";
+import { paginateNewestFirst } from "@/lib/ledger";
 import { parseMoneyToPaisa } from "@/lib/money";
 import { normalizeBdPhone } from "@/lib/phone";
 import { can, type Permission, type Role } from "@/lib/permissions";
@@ -60,7 +61,7 @@ import {
 } from "@/lib/api/mock/admin";
 import { resetDb, withDb } from "@/lib/api/mock/store";
 import { getAccessToken, issueRefreshToken, issueToken, readToken, setAccessToken } from "@/lib/api/token";
-import type { CustomerQuery, LedgerWriteResult } from "@/lib/api/types";
+import type { CustomerQuery, LedgerQuery, LedgerWriteResult } from "@/lib/api/types";
 
 function actorOf(db: AppDatabase): EngineActor {
   const token = getAccessToken();
@@ -203,6 +204,14 @@ function queryParties(db: AppDatabase, actor: EngineActor, partyType: "Customer"
     totalCount: filtered.length,
     totalPages: Math.max(1, Math.ceil(filtered.length / pageSize)),
   };
+}
+
+function partyLedgerPage(db: AppDatabase, partyId: string, query: LedgerQuery = {}) {
+  let rows = db.entries.filter((entry) => entry.partyId === partyId);
+  if (query.from) rows = rows.filter((entry) => entry.entryDate >= query.from!);
+  if (query.to) rows = rows.filter((entry) => entry.entryDate <= query.to!);
+  const page = paginateNewestFirst(rows, query.page, query.pageSize);
+  return { ...page, items: page.items.map((entry) => mapEntry(db, entry)) };
 }
 
 function remember<T>(db: AppDatabase, actor: EngineActor, key: string, hash: string, produce: () => T): T {
@@ -652,14 +661,11 @@ export const mockApi: ApiClient = {
         return db.groups.filter((group) => group.tenantId === actor.tenantId);
       });
     },
-    async ledger(id) {
+    async ledger(id, query) {
       return withDb((db) => {
         const actor = actorOf(db);
         partyById(db, id, actor.tenantId);
-        return db.entries
-          .filter((entry) => entry.partyId === id)
-          .sort((a, b) => b.entryDate.localeCompare(a.entryDate) || b.sequenceNo - a.sequenceNo)
-          .map((entry) => mapEntry(db, entry));
+        return partyLedgerPage(db, id, query);
       });
     },
     async aging(id) {

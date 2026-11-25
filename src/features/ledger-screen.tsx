@@ -8,6 +8,7 @@ import { Money } from "@/components/money";
 import { Badge, Button, Field, TextArea, TextInput } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
+import { CustomerLedger, ReverseDialog } from "@/features/customer-ledger";
 import { Link, useRouter } from "@/i18n/navigation";
 import { getApi, isApiError } from "@/lib/api";
 import { businessToday, formatDate } from "@/lib/date";
@@ -46,7 +47,8 @@ function LedgerView({ party, kind, tab }: { party: Customer; kind: "customer" | 
   const aging = useQuery({ queryKey: ["party-aging", party.id], queryFn: () => getApi().customers.aging(party.id), enabled: kind === "customer" });
   const ledger = useQuery({
     queryKey: ["ledger", party.id],
-    queryFn: () => (kind === "customer" ? getApi().customers.ledger(party.id) : getApi().suppliers.ledger(party.id)),
+    queryFn: () => getApi().suppliers.ledger(party.id),
+    enabled: kind === "supplier",
   });
   const promises = useQuery({ queryKey: ["promises", party.id], queryFn: () => getApi().collections.promises(), enabled: kind === "customer" && tab === "promises" });
   const messages = useQuery({ queryKey: ["messages", party.id], queryFn: () => getApi().customers.messages(party.id), enabled: kind === "customer" && tab === "messages" });
@@ -86,7 +88,7 @@ function LedgerView({ party, kind, tab }: { party: Customer; kind: "customer" | 
         </div>
       </section>
       {kind === "customer" ? (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["ledger", "promises", "messages", "timeline"] as const).map((item) => (
             <button key={item} type="button" className={`rounded-full px-3 py-2 text-sm font-semibold ${tab === item ? "bg-primary text-white" : "bg-white"}`} onClick={() => router.replace(`/customers/${party.id}?tab=${item}`)}>
               {tabs(item)}
@@ -94,9 +96,8 @@ function LedgerView({ party, kind, tab }: { party: Customer; kind: "customer" | 
           ))}
         </div>
       ) : null}
-      {tab === "ledger" || kind === "supplier" ? (
-        <LedgerTable entries={ledger.data ?? []} party={party} kind={kind} />
-      ) : null}
+      {kind === "customer" && tab === "ledger" ? <CustomerLedger partyId={party.id} /> : null}
+      {kind === "supplier" ? <LedgerTable entries={ledger.data ?? []} kind={kind} /> : null}
       {tab === "promises" ? (
         <ul className="flex flex-col gap-2">
           {(promises.data ?? []).filter((item) => item.customerId === party.id).map((item) => (
@@ -151,12 +152,11 @@ function ShareButton({ id }: { id: string }) {
   );
 }
 
-function LedgerTable({ entries, party, kind }: { entries: LedgerEntry[]; party: Customer; kind: "customer" | "supplier" }) {
+function LedgerTable({ entries, kind }: { entries: LedgerEntry[]; kind: "customer" | "supplier" }) {
   const t = useTranslations("ledger");
   const locale = useLocale() === "en" ? "en" : "bn";
   const { user } = useAuth();
   const [target, setTarget] = useState<LedgerEntry | null>(null);
-  const [correcting, setCorrecting] = useState(false);
   const canReverse = can(user?.role, "ledger.reverse") || can(user?.role, "ledger.reverseOwn");
   return (
     <section className="overflow-hidden rounded-2xl border border-line bg-white">
@@ -191,7 +191,7 @@ function LedgerTable({ entries, party, kind }: { entries: LedgerEntry[]; party: 
                   <td className="px-3 py-3"><Money value={entry.balanceAfter} /></td>
                   <td className="px-3 py-3">
                     {canReverse && !entry.isReversed && entry.entryType !== "Reversal" ? (
-                      <button type="button" className="text-sm font-semibold text-danger" onClick={() => { setCorrecting(false); setTarget(entry); }}>{t("reverse")}</button>
+                      <button type="button" className="text-sm font-semibold text-danger" onClick={() => setTarget(entry)}>{t("reverse")}</button>
                     ) : null}
                   </td>
                 </tr>
@@ -201,7 +201,7 @@ function LedgerTable({ entries, party, kind }: { entries: LedgerEntry[]; party: 
         </table>
         {entries.length === 0 ? <p className="p-4 text-muted">{t("noEntries")}</p> : null}
       </div>
-      <ReverseDialog entry={target} correcting={correcting} onClose={() => setTarget(null)} partyId={party.id} />
+      <ReverseDialog entry={target} onClose={() => setTarget(null)} />
     </section>
   );
 }
@@ -292,33 +292,3 @@ function EntryDialog({ open, mode, party, kind, onClose }: { open: boolean; mode
   );
 }
 
-function ReverseDialog({ entry, correcting, onClose, partyId }: { entry: LedgerEntry | null; correcting: boolean; onClose: () => void; partyId: string }) {
-  const t = useTranslations("ledger");
-  const errors = useTranslations("errors");
-  const toast = useToast();
-  const client = useQueryClient();
-  const [reason, setReason] = useState("");
-  const [error, setError] = useState("");
-  void correcting;
-  void partyId;
-  return (
-    <Dialog open={Boolean(entry)} title={t("reverse")} onClose={onClose}>
-      <form className="flex flex-col gap-3" onSubmit={async (event) => {
-        event.preventDefault();
-        if (!entry) return;
-        if (!reason.trim()) { setError(errors("REASON_REQUIRED")); return; }
-        try {
-          await getApi().ledger.reverse(entry.id, { reason }, idempotencyKey());
-          await client.invalidateQueries();
-          toast(t("reversedOk"));
-          onClose();
-        } catch (err) {
-          setError(errors(errorCode(err) as "UNKNOWN"));
-        }
-      }}>
-        <Field label={t("reason")} error={error}><TextArea data-testid="reverse-reason" value={reason} onChange={(event) => setReason(event.target.value)} /></Field>
-        <Button type="submit" variant="danger">{t("reverse")}</Button>
-      </form>
-    </Dialog>
-  );
-}

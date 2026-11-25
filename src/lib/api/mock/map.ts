@@ -73,6 +73,11 @@ export function mapCustomer(db: AppDatabase, party: DbParty, today: string): Cus
   };
 }
 
+function documentNoOf(db: AppDatabase, entryId?: string): string | undefined {
+  if (!entryId) return undefined;
+  return db.entries.find((item) => item.id === entryId)?.documentNo;
+}
+
 export function mapEntry(db: AppDatabase, entry: Database["entries"][number]): LedgerEntry {
   const user = db.users.find((item) => item.id === entry.createdBy);
   return {
@@ -91,7 +96,9 @@ export function mapEntry(db: AppDatabase, entry: Database["entries"][number]): L
     dueDate: entry.dueDate,
     isReversed: entry.isReversed,
     reversalOfEntryId: entry.reversalOfEntryId,
+    reversalOfDocumentNo: documentNoOf(db, entry.reversalOfEntryId),
     reversedByEntryId: entry.reversedByEntryId,
+    reversedByDocumentNo: documentNoOf(db, entry.reversedByEntryId),
     reversalReason: entry.reversalReason,
     correctionOfEntryId: entry.correctionOfEntryId,
     createdAtUtc: entry.createdAtUtc,
